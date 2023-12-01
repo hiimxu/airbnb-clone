@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo '🏗️👷 testing and buidling before commit'
+
+bun lint ||
+(
+    echo '😤🏀👋😤 Oh no we got some shit here! 💩💩💩💩💩💩💩💩💩💩😤🏀👋😤
+          ESLint Check Failed. Make the required changes listed above, add changes and try to commit again.'
+    false;
+)
+bun run build || 
+(
+    echo '❌👷🔨❌ Sorry, cannot commit... Because your build failed ❌👷🔨❌
+          Next build failed: View the errors above to see why.
+    '
+    false;
+)
+echo '✅✅✅✅ You win this time... I am committing this now. ✅✅✅✅'
+
