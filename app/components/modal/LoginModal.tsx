@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import useLoginModal from '~/app/hooks/useLoginModal ';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import useRegisterModal from '~/app/hooks/useRegisterModal';
 import Modal from './Modal';
 import Heading from '../Heading';
 import Input from '../inputs/Input';
@@ -14,6 +15,7 @@ import SocialLogin from './SocialLogin';
 const LoginModal = () => {
     const router = useRouter();
     const { isOpen, onClose } = useLoginModal();
+    const { onOpen: onOpenRegisterModal } = useRegisterModal();
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -48,6 +50,11 @@ const LoginModal = () => {
         });
     };
 
+    const toggle = useCallback(() => {
+        onClose();
+        onOpenRegisterModal();
+    }, [onClose, onOpenRegisterModal]);
+
     const bodyContent = (
         <div className="flex flex-col gap-4">
             <Heading
@@ -81,13 +88,13 @@ const LoginModal = () => {
             <SocialLogin />
             <div className="text-neutral-500 text-center mt-4 font-light">
                 <div className="flex items-center justify-center gap-2">
-                    <div>Already have an account?</div>
+                    <div>First time using Airbnb?</div>
                     <div
                         className="text-neutral-800 cursor-pointer hover:underline"
-                        onClick={onClose}
+                        onClick={toggle}
                         role="presentation"
                     >
-                        Login
+                        Create an account
                     </div>
                 </div>
             </div>

@@ -1,0 +1,40 @@
+'use client';
+
+import React from 'react';
+import { IconType } from 'react-icons';
+import { cn } from '~/app/libs/utils';
+
+type Props = {
+    icon: IconType;
+    label: string;
+    selected?: boolean;
+    onClick: (value: string) => void;
+};
+
+const CategoryInput: React.FC<Props> = ({
+    icon: Icon,
+    label,
+    selected,
+    onClick,
+}) => {
+    return (
+        <div
+            className={cn(
+                'rounded-xl border-2 p-4 flex flex-col gap-3 transition cursor-pointer',
+                'hover:border-black',
+                selected ? 'border-black' : 'border-neutral-200',
+            )}
+            onClick={() => onClick(label)}
+            role="presentation"
+        >
+            <Icon size={30} />
+            <div className="font-semibold">{label}</div>
+        </div>
+    );
+};
+
+CategoryInput.defaultProps = {
+    selected: undefined,
+};
+
+export default CategoryInput;
