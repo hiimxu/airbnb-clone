@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import axios from 'axios';
 import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
-import useRegisterModal from '~/app/hooks/useRegisterModal';
 import toast from 'react-hot-toast';
+import useLoginModal from '~/app/hooks/useLoginModal ';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Modal from './Modal';
 import Heading from '../Heading';
 import Input from '../inputs/Input';
 import SocialLogin from './SocialLogin';
 
-const RegisterModal = () => {
-    const { isOpen, onClose } = useRegisterModal();
+const LoginModal = () => {
+    const router = useRouter();
+    const { isOpen, onClose } = useLoginModal();
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -21,7 +23,6 @@ const RegisterModal = () => {
         formState: { errors },
     } = useForm<FieldValues>({
         defaultValues: {
-            name: '',
             email: '',
             password: '',
         },
@@ -29,37 +30,36 @@ const RegisterModal = () => {
 
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true);
-        axios
-            .post('api/register', data)
-            .then(() => {
+        signIn('credentials', {
+            ...data,
+            redirect: false,
+        }).then((callback) => {
+            setIsLoading(false);
+
+            if (callback?.ok) {
+                toast.success('Logged in');
+                router.refresh();
                 onClose();
-            })
-            .catch(() => toast.error('Something Went Wrong!'))
-            .finally(() => {
-                setIsLoading(false);
-            });
+            }
+
+            if (callback?.error) {
+                toast.error(callback.error);
+            }
+        });
     };
 
     const bodyContent = (
         <div className="flex flex-col gap-4">
             <Heading
                 center
-                subtitle="Create an account!"
-                title="Welcome to Airbnb"
+                subtitle="Login to your account!"
+                title="Welcome to back"
             />
             <Input
                 disabled={isLoading}
                 errors={errors}
                 id="email"
                 label="Email"
-                register={register}
-                required
-            />
-            <Input
-                disabled={isLoading}
-                errors={errors}
-                id="name"
-                label="Name"
                 register={register}
                 required
             />
@@ -103,9 +103,9 @@ const RegisterModal = () => {
             isOpen={isOpen}
             onClose={onClose}
             onSubmit={handleSubmit(onSubmit)}
-            title="Register"
+            title="Login"
         />
     );
 };
 
-export default RegisterModal;
+export default LoginModal;
