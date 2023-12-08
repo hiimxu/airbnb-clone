@@ -1,3 +1,5 @@
+/* eslint-disable max-lines-per-function */
+
 'use client';
 
 import React, { useMemo, useState } from 'react';
@@ -5,28 +7,34 @@ import useRentModal from '~/app/hooks/useRentModal';
 import { STEPS } from '~/app/common/enum';
 import { cn } from '~/app/libs/utils';
 import { CATEGORIES } from '~/app/common/constant';
-import { FieldValues, useForm } from 'react-hook-form';
+import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
 import { CountrySelectValue } from '~/app/types';
 import dynamic from 'next/dynamic';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 import Modal from './Modal';
 import Heading from '../Heading';
 import CategoryInput from '../inputs/CategoryInput';
 import CountrySelect from '../inputs/CountrySelect';
 import Counter from '../inputs/Counter';
 import ImageUpload from '../inputs/ImageUpload';
+import Input from '../inputs/Input';
 
 const RentModal = () => {
+    const router = useRouter();
     const { isOpen, onClose } = useRentModal();
 
     const [step, setStep] = useState<number>(STEPS.CATEGORY);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const {
-        // register,
-        // handleSubmit,
+        register,
+        handleSubmit,
         setValue,
         watch,
-        // formState: { errors },
-        // reset,
+        formState: { errors },
+        reset,
     } = useForm<FieldValues>({
         defaultValues: {
             category: '',
@@ -73,6 +81,30 @@ const RentModal = () => {
 
     const onNext = () => {
         setStep((prev) => prev + 1);
+    };
+
+    // eslint-disable-next-line consistent-return
+    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+        if (step !== STEPS.PRICE) {
+            return onNext();
+        }
+        setIsLoading(true);
+
+        axios
+            .post('/api/listings', data)
+            .then(() => {
+                toast.success('Listing Created!');
+                router.refresh();
+                reset();
+                setStep(STEPS.CATEGORY);
+                onClose();
+            })
+            .catch(() => {
+                toast.error('Something went wrong.');
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     };
 
     const actionLabel = useMemo(() => {
@@ -179,13 +211,62 @@ const RentModal = () => {
         );
     }
 
+    if (step === STEPS.DESCRIPTION) {
+        bodyContent = (
+            <div className="flex flex-col gap-8">
+                <Heading
+                    subtitle="Short and sweet works best!"
+                    title="How would you describe your place?"
+                />
+                <Input
+                    disabled={isLoading}
+                    errors={errors}
+                    id="title"
+                    label="Title"
+                    register={register}
+                    required
+                />
+                <hr />
+                <Input
+                    disabled={isLoading}
+                    errors={errors}
+                    id="description"
+                    label="Description"
+                    register={register}
+                    required
+                />
+            </div>
+        );
+    }
+
+    if (step === STEPS.PRICE) {
+        bodyContent = (
+            <div className="flex flex-col gap-8">
+                <Heading
+                    subtitle="How much do you charge per night?"
+                    title="Now, set your price"
+                />
+                <Input
+                    disabled={isLoading}
+                    errors={errors}
+                    formatPrice
+                    id="price"
+                    label="Price"
+                    register={register}
+                    required
+                    type="number"
+                />
+            </div>
+        );
+    }
+
     return (
         <Modal
             actionLabel={actionLabel}
             body={bodyContent}
             isOpen={isOpen}
             onClose={onClose}
-            onSubmit={onNext}
+            onSubmit={handleSubmit(onSubmit)}
             secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
             secondaryLabel={secondaryActionLabel}
             title="Airbnb your home"
