@@ -30,7 +30,9 @@ const ImageUpload: React.FC<Props> = ({ value, onChange }) => {
             options={{
                 maxFiles: 1,
             }}
-            uploadPreset="dykntssb"
+            uploadPreset={
+                process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_UPLOAD_PRESET
+            }
         >
             {({ open }) => {
                 return (
